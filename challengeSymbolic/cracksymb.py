@@ -2,8 +2,6 @@ import angr
 import claripy
 from pwn import*
 
-r = remote("bin.training.offdef.it", 2021)
-
 TARGET = 0x00403370
 AVOID = [0x00403369, 0x0040317c, 0x00402f79, 0x00402d77, 0x00402b7c,
          0x0040297c, 0x00402781, 0x00402576, 0x00402379, 0x00402181,
@@ -15,14 +13,15 @@ chars = [claripy.BVS(f"c_{i}", size=8) for i in range(24)]
 
 flag = claripy.Concat(*chars)
 
-proj = angr.Project("./cracksymb",use_sim_procedures=True, auto_load_libs=False)
+proj = angr.Project("./cracksymb")
 
 # initial_state = proj.factory.entry_state(stdin=flag)
-initial_state = proj.factory.full_init_state(stdin=flag, add_options={angr.options.LAZY_SOLVES})
+initial_state = proj.factory.entry_state(stdin=flag)
+initial_state.options.add(angr.options.LAZY_SOLVES)
 
 for char in chars:
-  initial_state.solver.add(char >= 0x20)
-  initial_state.solver.add(char <= 0x7e)
+  initial_state.solver.add(char>=0x20)
+  initial_state.solver.add(char<=0x7e)
 
 simgr = proj.factory.simulation_manager(initial_state)
 
@@ -33,7 +32,5 @@ while len(simgr.active) > 0:
     break
 
 if simgr.found:
-    print("SUCCESS")
-    r.sendline(simgr.found[0].posix.dumps(0))
-
-r.interactive()
+    solution = simgr.found[0].solver.eval(flag, cast_to=bytes)
+    print("Found:", solution.decode('utf-8'))
