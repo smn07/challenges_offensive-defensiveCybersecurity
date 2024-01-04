@@ -6,6 +6,7 @@ Course related to advanced topics dealing with cybersecurity and offensive secur
 - Return Oriented Programming
 - Heap Exploitation
 - Fuzzing, Constraints Programming and Symbolic Execution
+- Serialization
 - Race conditions
 - Web: XSS, CSP Bypass
 - Malware
