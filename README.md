@@ -1,7 +1,7 @@
 Course related to advanced topics dealing with cybersecurity and offensive security:
 
 - Shellcode
-- Reverse Engineering (done only with gdb and Ghidra => there is no code)
+- Reverse Engineering
 - Binary Mitigations
 - Return Oriented Programming
 - Heap Exploitation
